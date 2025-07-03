@@ -1,0 +1,51 @@
+// app/bookmarks/page.tsx
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+
+type Bookmark = {
+  id: string;
+  url: string;
+  title: string;
+  description?: string;
+  tags: string[];
+  createdAt: string;
+};
+
+export default function BookmarksPage() {
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+
+  useEffect(() => {
+    fetch("/api/bookmarks")
+      .then(res => res.json())
+      .then(setBookmarks)
+      .catch(err => console.error("Failed to load bookmarks", err));
+  }, []);
+
+  return (
+    <main className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Bookmarks</h1>
+      <Button>
+        <Link href="/bookmarks/new" className="text-2xl">+</Link>
+      </Button>
+      <ul className="grid grid-cols-4 gap-4 mt-4 space-y-4">
+        {bookmarks.map(bookmark => (
+          <li key={bookmark.id} className="p-4 border rounded shadow h-full">
+            <a href={bookmark.url} target="_blank" rel="noopener noreferrer" className="text-lg font-semibold underline">
+              {bookmark.title}
+            </a>
+            <p>{bookmark.description}</p>
+            <div className="text-sm text-gray-500">Tags: {bookmark.tags.join(", ")}</div>
+            <Button>
+                <Link href={`/bookmarks/${bookmark.id}`}>
+                    Edit
+                </Link>
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </main>
+  );
+}
