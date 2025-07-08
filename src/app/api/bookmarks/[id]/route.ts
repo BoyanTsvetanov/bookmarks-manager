@@ -4,15 +4,19 @@ import { NextRequest, NextResponse } from "next/server";
 
 const idSchema = z.string().uuid();
 
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: { params: { id: string } }) {
   try {
-    const id = idSchema.parse(params.id);
+    const id = idSchema.parse(context.params.id);
     const bookmark = await container.bookmarkRepository.findById(id);
-    if (!bookmark) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    if (!bookmark) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
 
     return NextResponse.json(bookmark);
-  } catch (error) {
-    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  } catch (err) {
+    console.error("Error fetching bookmark:", err);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
 

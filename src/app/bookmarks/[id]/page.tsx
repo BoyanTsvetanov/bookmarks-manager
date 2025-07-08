@@ -1,4 +1,3 @@
-// app/bookmarks/[id]/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,6 +14,8 @@ export default function EditBookmarkPage() {
     tags: "",
   });
 
+  const [loading, setLoading] = useState(true); // Add loading state
+
   useEffect(() => {
     fetch(`/api/bookmarks/${id}`)
       .then((res) => res.json())
@@ -25,6 +26,11 @@ export default function EditBookmarkPage() {
           description: data.description || "",
           tags: data.tags.join(", "),
         });
+        setLoading(false);
+      })
+      .catch(() => {
+        alert("Failed to fetch bookmark.");
+        setLoading(false);
       });
   }, [id]);
 
@@ -65,6 +71,14 @@ export default function EditBookmarkPage() {
       alert("Delete failed");
     }
   };
+
+  if (loading) {
+    return (
+      <main className="p-6 max-w-xl text-2xl mx-auto text-center">
+        <p className="text-gray-500 animate-pulse">Loading bookmark...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="p-6 max-w-xl mx-auto">
