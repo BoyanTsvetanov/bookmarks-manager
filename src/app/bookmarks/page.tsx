@@ -26,21 +26,21 @@ export default function BookmarksPage() {
 
   return (
     <main className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Bookmarks</h1>
+      <h1 className="text-2xl font-bold mb-4 font-jl">Bookmarks</h1>
       <Button>
         <Link href="/bookmarks/new" className="text-2xl">+</Link>
       </Button>
-      <ul className="grid grid-cols-4 gap-4 mt-4 space-y-4">
+      <ul className="grid xl:grid-cols-4 md:grid-cols-2 gap-4 mt-4 space-y-4">
         {bookmarks.map(bookmark => (
-          <li key={bookmark.id} className="p-4 border rounded shadow h-full">
-            <a href={bookmark.url} target="_blank" rel="noopener noreferrer" className="text-lg font-semibold underline">
-              {bookmark.title}
+          <li key={bookmark.id} className="relative flex flex-col p-4 border rounded shadow h-full">
+            <a href={bookmark.url} target="_blank" rel="noopener noreferrer" className="text-lg font-semibold underline w-fit max-w-[90%]">
+              <p className="truncate">{bookmark.title}</p>
             </a>
-            <p>{bookmark.description}</p>
+            <p className="text-ellipsis line-clamp-2">{bookmark.description}</p>
             <div className="text-sm text-gray-500">Tags: {bookmark.tags.join(", ")}</div>
-            <Button>
-                <Link href={`/bookmarks/${bookmark.id}`}>
-                    Edit
+            <Button className="absolute top-2 right-2 aspect-square p-2">
+                <Link href={`/bookmarks/${bookmark.id}`} className="flex items-center justify-center">
+                    <img src="/icons/edit.png" alt="edit-icon" className="h-4 object-contain invert"/>
                 </Link>
             </Button>
           </li>
