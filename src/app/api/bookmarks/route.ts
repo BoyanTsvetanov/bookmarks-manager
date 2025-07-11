@@ -1,4 +1,7 @@
-import { container } from "@/container";
+import { container } from "@/di/container";
+import { TOKENS } from "@/di/tokens";
+import { CreateBookmarkUseCase } from "@/application/bookmark/use-cases/create-bookmark.use-case";
+import { DrizzleBookmarkRepository } from "@/infrastructure/repositories/drizzle-bookmark.repository";
 import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -14,7 +17,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const parsed = createBookmarkSchema.parse(body);
 
-    const bookmark = await container.createBookmarkUseCase.execute(parsed);
+    const useCase = container.get(TOKENS.createBookmark) as CreateBookmarkUseCase;
+    const bookmark = await useCase.execute(parsed);
 
     return NextResponse.json(bookmark);
   } catch (error) {
@@ -32,10 +36,12 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   try {
-    const bookmarks = await container.bookmarkRepository.findAll();
+    const repo = container.get(TOKENS.bookmarkRepo) as DrizzleBookmarkRepository;
+    const bookmarks = await repo.findAll();
+
     return NextResponse.json(bookmarks);
   } catch (error) {
-    console.error(error);
+    console.error("Fetching bookmarks failed:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
