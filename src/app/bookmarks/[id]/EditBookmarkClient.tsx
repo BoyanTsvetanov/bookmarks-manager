@@ -120,13 +120,13 @@ function BookmarkFormContent() {
           onChange={handleChange}
         />
         <div className="flex gap-4">
-          <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">
+          <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded cursor-pointer">
             Update
           </button>
           <button
             type="button"
             onClick={handleDelete}
-            className="bg-red-600 text-white px-4 py-2 rounded"
+            className="bg-red-600 text-white px-4 py-2 rounded cursor-pointer"
           >
             Delete
           </button>

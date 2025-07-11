@@ -30,7 +30,7 @@ function BookmarksContent() {
   }
 
   return (
-    <ul className="grid xl:grid-cols-4 md:grid-cols-2 gap-4 mt-4 space-y-4">
+    <ul className="grid xl:grid-cols-4 sm:grid-cols-2 gap-4 mt-4 space-y-4">
       {bookmarks.map(bookmark => (
         <li key={bookmark.id} className="relative flex flex-col p-4 border rounded shadow h-full">
           <a

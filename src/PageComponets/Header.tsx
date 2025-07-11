@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import React from 'react'
 
 const Header = () => {
@@ -5,10 +6,10 @@ const Header = () => {
     <header>
         <nav className="bg-gray-800 p-4">
             <div className="container mx-auto flex justify-between items-center">
-                <h1 className="text-white text-2xl font-bold font-jl">Bookmarks * Manager</h1>
-                <div className='flex items-baseline text-sm font-doomsday text-nowrap'>
-                    <a href="/bookmarks" className="text-white mr-4">Bookmarks</a>
-                    <a href="/bookmarks/new" className="text-white">Add New</a>
+                <Link href="/" className="text-white sm:text-2xl text-xl font-bold font-jl">Bookmarks * Manager</Link>
+                <div className='flex items-baseline sm:text-sm text-xs font-doomsday text-nowrap'>
+                    <Link href="/bookmarks" className="text-white mr-4">Bookmarks</Link>
+                    <Link href="/bookmarks/new" className="text-white">Add New</Link>
                 </div>
             </div>
         </nav>
