@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@cerbos/http": "^0.22.1",
     "@clerk/nextjs": "^6.24.0",
     "@evyweb/ioctopus": "^1.2.0",
     "@neondatabase/serverless": "^1.0.1",

@@ -3,6 +3,10 @@ import { TOKENS } from "@/di/tokens";
 import { DrizzleBookmarkRepository } from "@/infrastructure/repositories/drizzle-bookmark.repository";
 import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/infrastructure/db/drizzle";
+import { bookmarksTable } from "@/infrastructure/db/schema";
+import { eq } from "drizzle-orm";
 
 const idSchema = z.string().uuid();
 const updateBookmarkSchema = z.object({
@@ -16,7 +20,7 @@ export async function GET(
   context: { params: { id: string } }
 ) {
   try {
-    const id = idSchema.parse(context.params.id);
+    const id = await idSchema.parse(context.params.id);
 
     const repo = container.get(TOKENS.bookmarkRepo) as DrizzleBookmarkRepository;
     const bookmark = await repo.findById(id);
@@ -33,19 +37,30 @@ export async function GET(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  try {
-    const id = idSchema.parse(params.id);
-
-    const repo = container.get(TOKENS.bookmarkRepo) as DrizzleBookmarkRepository;
-    await repo.delete(id);
-
-    return new NextResponse(null, { status: 204 });
-  } catch (error) {
-    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const [bookmark] = await db
+    .select()
+    .from(bookmarksTable)
+    .where(eq(bookmarksTable.id, params.id));
+
+  if (!bookmark) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  if (bookmark.userId !== userId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  await db.delete(bookmarksTable).where(eq(bookmarksTable.id, params.id));
+
+  return NextResponse.json({ message: "Deleted" }, { status: 200 });
 }
 
 export async function PUT(
