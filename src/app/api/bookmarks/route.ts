@@ -4,6 +4,7 @@ import { CreateBookmarkUseCase } from "@/application/bookmark/use-cases/create-b
 import { DrizzleBookmarkRepository } from "@/infrastructure/repositories/drizzle-bookmark.repository";
 import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 
 const createBookmarkSchema = z.object({
   url: z.string().url(),
@@ -14,11 +15,16 @@ const createBookmarkSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
     const parsed = createBookmarkSchema.parse(body);
 
     const useCase = container.get(TOKENS.createBookmark) as CreateBookmarkUseCase;
-    const bookmark = await useCase.execute(parsed);
+    const bookmark = await useCase.execute({ ...parsed, userId });
 
     return NextResponse.json(bookmark);
   } catch (error) {
@@ -36,8 +42,13 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const repo = container.get(TOKENS.bookmarkRepo) as DrizzleBookmarkRepository;
-    const bookmarks = await repo.findAll();
+    const bookmarks = await repo.findByUserId(userId); // 👈 we'll implement this next
 
     return NextResponse.json(bookmarks);
   } catch (error) {

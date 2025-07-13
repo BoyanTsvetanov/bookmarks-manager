@@ -16,6 +16,7 @@ export class CreateBookmarkUseCase {
       description: input.description,
       tags: input.tags,
       createdAt: new Date(),
+      userId: input.userId,
     });
 
     return this.bookmarkRepo.create(bookmark.toJSON());

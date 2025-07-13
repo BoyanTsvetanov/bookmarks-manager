@@ -5,6 +5,7 @@ export interface CreateBookmarkInput {
   title: string;
   description?: string;
   tags: string[];
+  userId: string;
 }
 
 export interface BookmarkRepository {

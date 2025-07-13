@@ -20,6 +20,7 @@ export class DrizzleBookmarkRepository implements BookmarkRepository {
       description: bookmarkFromDB.description ?? undefined,
       tags: bookmarkFromDB.tags,
       createdAt: bookmarkFromDB.createdAt,
+      userId: bookmarkFromDB.userId,
     });
   }
 
@@ -36,6 +37,7 @@ export class DrizzleBookmarkRepository implements BookmarkRepository {
       description: bookmarkFromDB.description ?? undefined,
       tags: bookmarkFromDB.tags,
       createdAt: bookmarkFromDB.createdAt,
+      userId: bookmarkFromDB.userId,
     });
   }
 
@@ -50,9 +52,15 @@ export class DrizzleBookmarkRepository implements BookmarkRepository {
         description: bookmarkFromDB.description ?? undefined,
         tags: bookmarkFromDB.tags,
         createdAt: bookmarkFromDB.createdAt,
+        userId: bookmarkFromDB.userId,
       });
     });
   }
+
+  async findByUserId(userId: string) {
+  const result = await db.select().from(bookmarksTable).where(eq(bookmarksTable.userId, userId));
+  return result;
+}
 
   async update(id: string, data: Partial<CreateBookmarkInput>): Promise<Bookmark> {
   const result = await db
@@ -71,6 +79,7 @@ export class DrizzleBookmarkRepository implements BookmarkRepository {
     description: bookmarkFromDB.description ?? undefined,
     tags: bookmarkFromDB.tags,
     createdAt: bookmarkFromDB.createdAt,
+    userId: bookmarkFromDB.userId,
   });
 }
 

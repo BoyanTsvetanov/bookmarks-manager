@@ -5,6 +5,7 @@ export interface BookmarkProps {
   description?: string;
   tags: string[];
   createdAt: Date;
+  userId: string;
 }
 
 export class Bookmark {
@@ -32,6 +33,10 @@ export class Bookmark {
 
   get createdAt() {
     return this.props.createdAt;
+  }
+  
+  get userId() {
+    return this.props.userId;
   }
 
   toJSON() {

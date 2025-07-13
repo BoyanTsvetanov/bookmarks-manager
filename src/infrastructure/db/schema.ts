@@ -8,6 +8,7 @@ export const bookmarksTable = pgTable("bookmarks", {
   description: text("description"),
   tags: text("tags").array().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  userId: text("user_id").notNull(),
 });
 
 export const bookmarkInsertSchema = createInsertSchema(bookmarksTable);

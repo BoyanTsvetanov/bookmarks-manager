@@ -23,6 +23,7 @@ export class UpdateBookmarkUseCase {
       description: input.description ?? existing.description,
       tags: input.tags ?? existing.tags,
       createdAt: existing.createdAt,
+      userId: existing.userId,
     });
 
     return await this.repo.update(input.id, {
