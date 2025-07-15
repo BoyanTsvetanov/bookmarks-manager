@@ -16,6 +16,7 @@ export class DrizzleUserRepository implements UserRepository {
       id: userFromDB.id,
       username: userFromDB.username,
       email: userFromDB.email,
+      role: userFromDB.role ?? "user",
       createdAt: userFromDB.createdAt,
       updatedAt: userFromDB.updatedAt,
     });
@@ -29,6 +30,7 @@ export class DrizzleUserRepository implements UserRepository {
         id: userFromDB.id,
         username: userFromDB.username,
         email: userFromDB.email,
+        role: userFromDB.role ?? "user",
         createdAt: userFromDB.createdAt,
         updatedAt: userFromDB.updatedAt,
       });
@@ -45,6 +47,7 @@ export class DrizzleUserRepository implements UserRepository {
       id: userFromDB.id,
       username: userFromDB.username,
       email: userFromDB.email,
+      role: userFromDB.role ?? "user",
       createdAt: userFromDB.createdAt,
       updatedAt: userFromDB.updatedAt,
     });
@@ -65,6 +68,7 @@ export class DrizzleUserRepository implements UserRepository {
       id: userFromDB.id,
       username: userFromDB.username,
       email: userFromDB.email,
+      role: userFromDB.role ?? "user",
       createdAt: userFromDB.createdAt,
       updatedAt: userFromDB.updatedAt,
     });
