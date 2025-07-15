@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const bookmarksTable = pgTable("bookmarks", {
@@ -11,8 +11,22 @@ export const bookmarksTable = pgTable("bookmarks", {
   userId: text("user_id").notNull(),
 });
 
+export const usersTable = pgTable('users', {
+  id: text('id').primaryKey(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  username: text('username').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
+});
+
 export const bookmarkInsertSchema = createInsertSchema(bookmarksTable);
 export const bookmarkSelectSchema = createSelectSchema(bookmarksTable);
 
 export type BookmarkInsert = typeof bookmarkInsertSchema.type;
 export type BookmarkFromDB = typeof bookmarkSelectSchema.type;
+
+export const userInsertSchema = createInsertSchema(usersTable);
+export const userSelectSchema = createSelectSchema(usersTable);
+
+export type UserInsert = typeof userInsertSchema.type;
+export type UserFromDB = typeof userSelectSchema.type;
