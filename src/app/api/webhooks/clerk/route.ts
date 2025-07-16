@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { CreateUserUseCase } from "@/application/user/use-cases/create-user.use-case";
 import { DrizzleUserRepository } from "@/infrastructure/repositories/drizzle-user.repository";
-import { verifyClerkWebhook } from "@/lib/verifyAndParseWebhook";
+import { CreateUserUseCase } from "@/application/user/use-cases/create-user.use-case";
+import { UpdateUserUseCase } from "@/application/user/use-cases/update-user.use-case";
+import { DeleteUserUseCase } from "@/application/user/use-cases/delete-user.use-case";
 import { parseClerkUser } from "@/lib/parseClerkUser";
+import { verifyClerkWebhook } from "@/lib/verifyAndParseWebhook";
+import { DrizzleBookmarkRepository } from "@/infrastructure/repositories/drizzle-bookmark.repository";
+import { DeleteBookmarksByUser } from "@/application/bookmark/use-cases/delete-user-bookmarks.use-case";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,24 +15,58 @@ export async function POST(req: NextRequest) {
   try {
     const event = await verifyClerkWebhook(req);
 
-    if (event.type === "user.created") {
-      const userData = parseClerkUser(event.data);
+    const userRepo = new DrizzleUserRepository();
 
-      const userRepository = new DrizzleUserRepository();
-      const createUser = new CreateUserUseCase(userRepository);
+    switch (event.type) {
+      case "user.created": {
+        const userData = parseClerkUser(event.data);
+        const createUser = new CreateUserUseCase(userRepo);
+        await createUser.execute({
+          id: userData.id,
+          email: userData.email,
+          username: userData.name || userData.username || "",
+          role: "user",
+        });
+        break;
+      }
 
-      await createUser.execute({
-        id: userData.id,
-        username: userData.username,
-        email: userData.email,
-        role: "user",
-      });
+      case "user.updated": {
+        const userData = parseClerkUser(event.data);
+        const updateUser = new UpdateUserUseCase(userRepo);
+        await updateUser.execute(
+          userData.id,
+          {
+            email: userData.email,
+            username: userData.name || userData.username || "",
+          }
+        );
+        break;
+      }
 
-      return new NextResponse("✅ User created", { status: 200 });
+      case "user.deleted": {
+        const userId = event.data.id;
+        if (!userId) {
+          throw new Error("User ID is missing in the webhook event data.");
+        }
+
+        const deleteUser = new DeleteUserUseCase(userRepo);
+        await deleteUser.execute(userId);
+
+        const bookmarkRepo = new DrizzleBookmarkRepository();
+        const deleteBookmarks = new DeleteBookmarksByUser(bookmarkRepo);
+        await deleteBookmarks.execute({ userId });
+
+        break;
+      }
+
+      default:
+        console.log("🔍 Ignored event type:", event.type);
     }
 
-    return new NextResponse("⚠️ Event ignored", { status: 200 });
+    return new NextResponse("✅ Webhook processed", { status: 200 });
+
   } catch (err) {
-    return new NextResponse("❌ Webhook error", { status: 400 });
+    console.error("❌ Webhook error:", err);
+    return new NextResponse("Webhook error", { status: 400 });
   }
 }

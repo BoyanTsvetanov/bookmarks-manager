@@ -14,4 +14,5 @@ export interface BookmarkRepository {
   findById(id: string): Promise<Bookmark | null>;
   update(id: string, data: Partial<CreateBookmarkInput>): Promise<Bookmark>;
   delete(id: string): Promise<void>;
+  deleteAllByUserId(userId: string): Promise<void>;
 }
