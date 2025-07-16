@@ -1,10 +1,10 @@
 export interface UserProps {
-    id: string;
-    username: string;   
-    email: string;
-    role: string;
-    createdAt: Date;    
-    updatedAt: Date;
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export class User {
@@ -24,7 +24,7 @@ export class User {
 
   get role() {
     return this.props.role;
-}
+  }
 
   get createdAt() {
     return this.props.createdAt;
