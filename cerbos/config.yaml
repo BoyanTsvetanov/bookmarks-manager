@@ -1,0 +1,11 @@
+server:
+  adminAPI:
+    enabled: true
+
+storage:
+  driver: disk
+  disk:
+    directory: /policies/policies
+
+schema:
+  enforcement: none

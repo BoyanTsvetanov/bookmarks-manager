@@ -1,0 +1,23 @@
+apiVersion: api.cerbos.dev/v1
+resourcePolicy:
+  version: "default"
+  resource: "bookmark"
+
+  rules:
+    # 1. Admins can perform any action
+    - actions: ["*"]
+      effect: EFFECT_ALLOW
+      roles: ["admin"]
+
+    # 2. Users can read or edit only their own bookmarks
+    - actions: ["read", "delete", "edit"]
+      effect: EFFECT_ALLOW
+      roles: ["user"]
+      condition:
+        match:
+          expr: request.resource.attr.ownerId == request.principal.id
+
+    # 3. Users are denied from deleting (overrides any fallback)
+    # - actions: [ "read"]
+    #   effect: EFFECT_DENY
+    #   roles: ["user"]
