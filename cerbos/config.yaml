@@ -1,6 +1,3 @@
-server:
-  adminAPI:
-    enabled: true
 
 storage:
   driver: disk
