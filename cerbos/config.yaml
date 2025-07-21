@@ -1,11 +1,11 @@
-# server:
-#   adminAPI:
-#     enabled: true
+server:
+  adminAPI:
+    enabled: true
 
-# storage:
-#   driver: disk
-#   disk:
-#     directory: /policies/policies
+storage:
+  driver: disk
+  disk:
+    directory: /policies/policies
 
 schema:
   enforcement: none

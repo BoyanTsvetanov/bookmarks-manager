@@ -2,10 +2,33 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
+
+type BookmarkInput = {
+  url: string;
+  title: string;
+  description?: string;
+  tags: string[];
+};
+
+async function createBookmark(input: BookmarkInput) {
+  const res = await fetch('/api/bookmarks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+
+  if (!res.ok) throw new Error('Failed to create bookmark');
+}
 
 function NewBookmarkForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [form, setForm] = useState({
     url: '',
@@ -14,11 +37,22 @@ function NewBookmarkForm() {
     tags: '',
   });
 
+  const { mutate, isPending } = useMutation({
+    mutationFn: createBookmark,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      router.push('/bookmarks');
+    },
+    onError: () => {
+      alert('Failed to create bookmark');
+    },
+  });
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     const tagsArray = form.tags
@@ -26,22 +60,12 @@ function NewBookmarkForm() {
       .map(tag => tag.trim())
       .filter(Boolean);
 
-    const res = await fetch('/api/bookmarks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url: form.url,
-        title: form.title,
-        description: form.description,
-        tags: tagsArray,
-      }),
+    mutate({
+      url: form.url,
+      title: form.title,
+      description: form.description,
+      tags: tagsArray,
     });
-
-    if (res.ok) {
-      router.push('/bookmarks');
-    } else {
-      alert('Failed to create bookmark');
-    }
   };
 
   return (
@@ -76,9 +100,10 @@ function NewBookmarkForm() {
         />
         <button
           type="submit"
+          disabled={isPending}
           className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
         >
-          Create
+          {isPending ? 'Creating...' : 'Create'}
         </button>
       </form>
     </main>

@@ -1,8 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useQuery, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
 
 type BookmarkForm = {
   url: string;
@@ -11,9 +17,37 @@ type BookmarkForm = {
   tags: string;
 };
 
+async function fetchBookmark(id: string): Promise<{
+  url: string;
+  title: string;
+  description?: string;
+  tags: string[];
+}> {
+  const res = await fetch(`/api/bookmarks/${id}`);
+  if (!res.ok) throw new Error('Failed to fetch bookmark');
+  return res.json();
+}
+
+async function updateBookmark(id: string, payload: { title: string; description: string; tags: string[] }) {
+  const res = await fetch(`/api/bookmarks/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error('Failed to update bookmark');
+}
+
+async function deleteBookmark(id: string) {
+  const res = await fetch(`/api/bookmarks/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to delete bookmark');
+}
+
 function BookmarkFormContent() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['bookmark', id],
@@ -27,51 +61,58 @@ function BookmarkFormContent() {
     tags: '',
   });
 
-  if (data && !form.title && !isLoading) {
-    setForm({
-      url: data.url,
-      title: data.title,
-      description: data.description || '',
-      tags: data.tags.join(', '),
-    });
-  }
+  useEffect(() => {
+    if (data) {
+      setForm({
+        url: data.url,
+        title: data.title,
+        description: data.description || '',
+        tags: data.tags.join(', '),
+      });
+    }
+  }, [data]);
+
+  const updateMutation = useMutation({
+    mutationFn: (updated: { title: string; description: string; tags: string[] }) =>
+      updateBookmark(id, updated),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      router.push('/bookmarks');
+    },
+    onError: () => {
+      alert('Update failed');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteBookmark(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      router.push('/bookmarks');
+    },
+    onError: () => {
+      alert('Delete failed');
+    },
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
+  const handleUpdate = (e: React.FormEvent) => {
     e.preventDefault();
     const tagsArray = form.tags.split(',').map(t => t.trim()).filter(Boolean);
-
-    const res = await fetch(`/api/bookmarks/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: form.title,
-        description: form.description,
-        tags: tagsArray,
-      }),
+    updateMutation.mutate({
+      title: form.title,
+      description: form.description || '',
+      tags: tagsArray,
     });
-
-    if (res.ok) {
-      router.push('/bookmarks');
-    } else {
-      alert('Update failed');
-    }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     const ok = confirm('Are you sure you want to delete this bookmark?');
     if (!ok) return;
-
-    const res = await fetch(`/api/bookmarks/${id}`, { method: 'DELETE' });
-
-    if (res.ok) {
-      router.push('/bookmarks');
-    } else {
-      alert('Delete failed');
-    }
+    deleteMutation.mutate();
   };
 
   if (isLoading) {
@@ -120,15 +161,20 @@ function BookmarkFormContent() {
           onChange={handleChange}
         />
         <div className="flex gap-4">
-          <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded cursor-pointer">
-            Update
+          <button
+            type="submit"
+            disabled={updateMutation.isPending}
+            className="bg-green-600 text-white px-4 py-2 rounded cursor-pointer"
+          >
+            {updateMutation.isPending ? 'Updating...' : 'Update'}
           </button>
           <button
             type="button"
             onClick={handleDelete}
+            disabled={deleteMutation.isPending}
             className="bg-red-600 text-white px-4 py-2 rounded cursor-pointer"
           >
-            Delete
+            {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
           </button>
         </div>
       </form>
@@ -144,15 +190,4 @@ export default function EditBookmarkClient() {
       <BookmarkFormContent />
     </QueryClientProvider>
   );
-}
-
-async function fetchBookmark(id: string): Promise<{
-  url: string;
-  title: string;
-  description?: string;
-  tags: string[];
-}> {
-  const res = await fetch(`/api/bookmarks/${id}`);
-  if (!res.ok) throw new Error('Failed to fetch bookmark');
-  return res.json();
 }
